@@ -30,6 +30,9 @@ int insertBegin(list *l, type_elem el);
 // search by id (start: where starts the search)
 node *searchId(list *l, node *start, int id);
 
+// remove node
+type_elem remove(list *l, node *n);
+
 // remove by id
 type_elem removeId(list *l, int id);
 

@@ -3,36 +3,31 @@ typedef struct {
 	list *edges;
 } graph;
 
-typedef struct {
-	list *vertices;
-	list *edges;
-} vertices;
-
 
 /* MÉTODOS QUE MODIFICAM O GRAFO */
 /* Cria um grafo */
-graph* createGraph(void);
+graph *initGraph();
 
 /* Apaga um grafo */
 void eraseGraph(graph* g);
 
 /* Função para adicionar um vértice ao grafo */
-int insertVertex(graph* g, int o);
+node *insertVertex(graph* g, type_elem el);
 
 /* Função para adicionar uma aresta ao grafo */
-void insertEdge(graph* g, int v, int w, int o);
+node *insertEdge(graph* g, int v, int w, type_elem el);
 
 /* Função para substituir o elemento armazenado no vértice 'v' por 'o' */
-void replaceVertex(graph* g, int v, int o);
+void replaceVertex(graph* g, int v, type_elem el);
 
 /* Função para substituir o elemento armazenado na aresta 'e' por 'o' */
-void replaceEdge(graph* g, int e, int o);
+void replaceEdge(graph* g, int e, type_elem el);
 
-/* Função para remover um vértice do grafo */
-void removeVertex(graph* g, int v);
+/* Função para remover um vértice do grafo, returns a empty element when fail */
+type_elem removeVertex(graph* g, int v);
 
-/* Função para remover uma aresta do grafo */
-void removeEdge(graph* g, int e);
+/* Função para remover uma aresta do grafo, returns a empty element when fail */
+type_elem removeEdge(graph* g, int e);
 
 
 /* MÉTODOS GERAIS */
@@ -46,7 +41,7 @@ int numEdges(graph* g);
 int degree(graph* g, int v);
 
 /* Função para verificar se dois vértices são ou não adjacentes */
-int areAdjacent(graph* g, int v, int w);
+boolean areAdjacent(graph* g, int v, int w);
 
 
 /* MÉTODOS DE IMPRESSÃO */
@@ -58,13 +53,3 @@ void printEdges(graph* g);
 
 /* Imprime o grafo */
 void printGraph(graph* g);
-
-/* Imprime uma lista contendo o grau de cada vértice */
-void printDegree(graph* g);
-
-/* Imprime TRUE caso os dois vértices sejam adjacentes ou FALSE caso contrário */
-void printAdjacent(graph* g, int v, int w);
-
-graph* createMazeGraph(int matriz[MAX_MAZE][MAX_MAZE], int n, int m);
-
-int bfs(graph* g, int v, int end);

@@ -3,13 +3,15 @@ typedef struct {
 	char name[40];
 } type_elem;
 
+typedef enum { FALSE, TRUE } boolean;
+
 struct list_node {
 	type_elem elem;
+	char type; // v - vertex, e -edge
 	struct list_node *next;
 	struct list_node *prev;
-	struct list_node  v1;
-	struct list_node  v2;
-	list adjacencyList;
+	struct list_node *v1;
+	struct list_node *v2;
 };
 typedef struct list_node node;
 
@@ -25,18 +27,21 @@ list *initList();
 void eraseList(list *l, node *n);
 
 // insert in list order
-int insert(list *l, type_elem el);
+node *insert(list *l, type_elem el);
 
 // insert in top of the list
-int insertBegin(list *l, type_elem el);
+node *insertBegin(list *l, type_elem el);
 
 // search by id (start: where starts the search)
 node *searchId(list *l, node *start, int id);
 
-// remove by id
+// remove node, returns a empty element when fail
+type_elem removeNode(list *l, node *n);
+
+// remove by id, returns a empty element when fail
 type_elem removeId(list *l, int id);
 
-// remove from end or begin(flags: b - begin, e - end)
+// remove from end or begin(flags: b - begin, e - end), returns a empty element when fail
 type_elem removeFromEndOrBegin(list *l, char flag);
 
 // print all the nodes (start: where starts the search)

@@ -1,13 +1,10 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include"list.h"
-
-#define FALSE 0
-#define TRUE 1
+#include <stdio.h>
+#include <stdlib.h>
+#include "list.h"
 
 list *initList() {
 	list *l;
-	l = malloc(sizeof(list));
+	l = (list*) malloc(sizeof(list));
 	l->head = NULL;
 	l->tail = NULL;
 	l->count = 0;
@@ -15,57 +12,70 @@ list *initList() {
 }
 
 void eraseList(list *l, node *n) {
+	if(l->head == NULL) {
+		free(l);
+		return;
+	}
 	if(n->next != NULL)
 		eraseList(l, n->next);
 
 	free(n->next);
 
-	if(n == l->head)
+	if(n == l->head) {
+		free(n);
 		free(l);
+	}	
 }
 
-int insert(list *l, type_elem el) {
+node *insert(list *l, type_elem el) {
 	node *p;
-	p = malloc(sizeof(node));
+	p = (node*) malloc(sizeof(node));
 	p->elem = el;
 	if(l->head == NULL) {
-		l->head = p;
-		l->tail = p;
 		p->next = NULL;
 		p->prev = NULL;
+		p->v1 = NULL;
+		p->v2 = NULL;
+		l->head = p;
+		l->tail = p;
 	} else {
 		l->tail->next = p;
 		p->prev = l->tail;
 		p->next = NULL;
+		p->v1 = NULL;
+		p->v2 = NULL;
 		l->tail = p;
 	}
 	l->count++;
-	return TRUE;
+	return p;
 }
 
-int insertBegin(list *l, type_elem el) {
+node *insertBegin(list *l, type_elem el) {
 	node *p;
-	p = malloc(sizeof(node));
-
+	p = (node*) malloc(sizeof(node));
 	p->elem = el;
 	if(l->head == NULL) {
 		l->head = p;
 		l->tail = p;
 		p->next = NULL;
 		p->prev = NULL;
+		p->v1 = NULL;
+		p->v2 = NULL;
 	} else {
 		l->head->prev = p;
 		p->prev = NULL;
+		p->v1 = NULL;
+		p->v2 = NULL;
 		p->next = l->head;
 		l->head = p;
 	}
 	l->count++;
-	return 1;
+	return p;
 }
 
 node *searchId(list *l, node *start, int id) {
 	if (start == NULL) start = l->head;
-
+	if (l->head == NULL) return NULL;
 	if (start->elem.id == id) {
 		return start;
 	}
@@ -76,12 +86,51 @@ node *searchId(list *l, node *start, int id) {
 	}
 }
 
+type_elem removeNode(list *l, node *n) {
+	type_elem aux = {0,' '};
+
+	if(n == NULL)
+		return aux;
+	aux = n->elem;	
+	if (l->tail == n && l->head == n) {
+		l->head = NULL;
+		l->tail = NULL;
+	} else if (l->head == n) {
+		l->head = n->next;
+		l->head->prev = NULL;
+	} else if (l->tail == n) {
+		l->tail = n->prev;
+		l->tail->next = NULL;
+	} else {
+		n->prev->next = n->next;
+		n->next->prev = n->prev;
+	}
+	free(n);
+	l->count--;
+	return aux;
+}
+
 type_elem removeId(list *l, int id) {
-	type_elem aux;
+	type_elem aux = {0,' '};
 	node *n;
 
 	n = searchId(l, NULL, id);
-	aux = n->elem;
+	if(n == NULL)
+		return aux;
+	aux = n->elem;	
+	if (l->tail == n && l->head == n) {
+		l->head = NULL;
+		l->tail = NULL;
+	} else if (l->head == n) {
+		l->head = n->next;
+		l->head->prev = NULL;
+	} else if (l->tail == n) {
+		l->tail = n->prev;
+		l->tail->next = NULL;
+	} else {
+		n->prev->next = n->next;
+		n->next->prev = n->prev;
+	}
 	free(n);
 	l->count--;
 	return aux;

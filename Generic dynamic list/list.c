@@ -76,6 +76,16 @@ node *searchId(list *l, node *start, int id) {
 	}
 }
 
+
+type_elem remove(list *l, node *n) {
+	type_elem aux;
+	
+	aux = n->elem;
+	free(n);
+	l->count--;
+	return aux;
+}
+
 type_elem removeId(list *l, int id) {
 	type_elem aux;
 	node *n;
