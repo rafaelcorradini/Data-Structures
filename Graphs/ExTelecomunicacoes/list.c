@@ -11,8 +11,105 @@ list *initList() {
 	return l;
 }
 
-void eraseList(list *l, node *n) {
+node *insertPriority(list *l, type_elem el) {
+	node *p, *v;
+	int dist;
+	
+	p = (node*) malloc(sizeof(node));
+	p->elem = el;
+
 	if(l->head == NULL) {
+		p->next = NULL;
+		p->prev = NULL;
+		l->head = p;
+		l->tail = p;
+	} else {
+		v = l->head;
+		dist = v->elem.dist;
+		while (p->elem.dist > dist) {
+			if (v == NULL)
+				break;
+			dist = v->elem.dist;
+			v = v->next;
+		}
+		if (v == NULL) {
+			l->tail->next = p;
+			p->prev = l->tail;
+			p->next = NULL;
+			l->tail = p;
+		} else if (v == l->head){
+			v->prev = p;
+			p->next = v;
+			p->prev = NULL;
+			l->head = p;
+		} else {
+			p->prev = v->prev;
+			v->prev->next = p;
+			v->prev = p;
+			p->next = v;
+		}
+	}
+	p->v1 = NULL;
+	p->v2 = NULL;
+	p->parent = NULL;
+	p->type = 'v';
+	l->count++;
+	return p;
+}
+
+node *insertPriorityId(list *l, type_elem el) {
+	node *p, *v;
+	int id;
+
+	p = (node*) malloc(sizeof(node));
+	p->elem = el;
+
+	if(l->head == NULL) {
+		p->next = NULL;
+		p->prev = NULL;
+		l->head = p;
+		l->tail = p;
+	} else {
+		v = l->head;
+		id = v->elem.id;
+		while (p->elem.id > id) {
+			if (v == NULL)
+				break;
+			id = v->elem.id;
+			v = v->next;
+		}
+		if (v == NULL) {
+			l->tail->next = p;
+			p->prev = l->tail;
+			p->next = NULL;
+			l->tail = p;
+		} else if (v == l->head) {
+			l->head->prev = p;
+			p->next = l->head;
+			p->prev = NULL;
+			l->head = p;
+		} else {
+			p->prev = v->prev;
+			v->prev->next = p;
+			v->prev = p;
+			p->next = v;
+		}
+	}
+	p->v1 = NULL;
+	p->v2 = NULL;
+	p->parent = NULL;
+	p->type = 'v';
+	l->count++;
+	return p;
+}
+
+void replacePriority(list *l, node *n, type_elem el) {
+	removeNode(l, n);
+	insertPriority(l, el);
+}
+
+void eraseList(list *l, node *n) {
+	if(l->head == NULL || n == NULL) {
 		free(l);
 		return;
 	}
@@ -34,18 +131,17 @@ node *insert(list *l, type_elem el) {
 	if(l->head == NULL) {
 		p->next = NULL;
 		p->prev = NULL;
-		p->v1 = NULL;
-		p->v2 = NULL;
 		l->head = p;
 		l->tail = p;
 	} else {
 		l->tail->next = p;
 		p->prev = l->tail;
 		p->next = NULL;
-		p->v1 = NULL;
-		p->v2 = NULL;
 		l->tail = p;
 	}
+	p->v1 = NULL;
+	p->v2 = NULL;
+	p->parent = NULL;
 	l->count++;
 	return p;
 }
@@ -59,16 +155,15 @@ node *insertBegin(list *l, type_elem el) {
 		l->tail = p;
 		p->next = NULL;
 		p->prev = NULL;
-		p->v1 = NULL;
-		p->v2 = NULL;
 	} else {
 		l->head->prev = p;
 		p->prev = NULL;
-		p->v1 = NULL;
-		p->v2 = NULL;
 		p->next = l->head;
 		l->head = p;
 	}
+	p->v1 = NULL;
+	p->v2 = NULL;
+	p->parent = NULL;
 	l->count++;
 	return p;
 }
@@ -87,7 +182,7 @@ node *searchId(list *l, node *start, int id) {
 }
 
 type_elem removeNode(list *l, node *n) {
-	type_elem aux = {0,' '};
+	type_elem aux = {0,0,0, FALSE};
 
 	if(n == NULL)
 		return aux;
@@ -111,7 +206,7 @@ type_elem removeNode(list *l, node *n) {
 }
 
 type_elem removeId(list *l, int id) {
-	type_elem aux = {0,' '};
+	type_elem aux = {0,0,0, FALSE};
 	node *n;
 
 	n = searchId(l, NULL, id);
@@ -137,9 +232,11 @@ type_elem removeId(list *l, int id) {
 }
 
 type_elem removeFromEndOrBegin(list *l, char flag) {
-	type_elem aux;
+	type_elem aux = {0,0,0, FALSE};
 	node *p;
 
+	if (l->head == NULL)
+		return aux;
 	if (flag == 'b') {
 		aux = l->head->elem;
 		p = l->head;
@@ -168,13 +265,13 @@ type_elem removeFromEndOrBegin(list *l, char flag) {
 void printList(list *l, node *start, char orderby) {
 	if (l->count == 0) return;
 	if (orderby == 'a') {
-		printf("%d\n", start->elem.id);
+		printf("%d %lf %lf\n", start->elem.id, start->elem.longitude, start->elem.latitude);
 		if(start->next != NULL) {
 			return printList(l, start->next, orderby);
 		}
 	}
 	if (orderby == 'd') {
-		printf("%d\n", start->elem.id);
+		printf("%d %lf %lf\n", start->elem.id, start->elem.longitude, start->elem.latitude);
 		if(start->prev != NULL) {
 			return printList(l, start->prev, orderby);
 		}

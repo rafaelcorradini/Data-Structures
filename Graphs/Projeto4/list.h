@@ -1,9 +1,11 @@
+typedef enum { FALSE, TRUE } boolean;
+
 typedef struct {
 	int id;
-	char name[40];
+	double value;
+	double dist;
+	boolean c;
 } type_elem;
-
-typedef enum { FALSE, TRUE } boolean;
 
 struct list_node {
 	type_elem elem;
@@ -12,6 +14,7 @@ struct list_node {
 	struct list_node *prev;
 	struct list_node *v1;
 	struct list_node *v2;
+	struct list_node *parent;
 };
 typedef struct list_node node;
 

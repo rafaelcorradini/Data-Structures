@@ -34,6 +34,7 @@ node *insert(list *l, type_elem el) {
 	if(l->head == NULL) {
 		p->next = NULL;
 		p->prev = NULL;
+		p->parent = NULL;
 		p->v1 = NULL;
 		p->v2 = NULL;
 		l->head = p;
@@ -59,11 +60,13 @@ node *insertBegin(list *l, type_elem el) {
 		l->tail = p;
 		p->next = NULL;
 		p->prev = NULL;
+		p->parent = NULL;
 		p->v1 = NULL;
 		p->v2 = NULL;
 	} else {
 		l->head->prev = p;
 		p->prev = NULL;
+		p->parent = NULL;
 		p->v1 = NULL;
 		p->v2 = NULL;
 		p->next = l->head;
