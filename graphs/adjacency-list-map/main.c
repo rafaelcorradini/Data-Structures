@@ -5,10 +5,8 @@
 
 int main() {
 	list *l;
-	int i, id, v1, v2;
-	graph *g;
-	type_elem el;
-	const type_elem emptyElem = {0, ' '};
+	int i, value, v1, v2, id;
+	Graph *g;
 
 	g = initGraph();
 
@@ -19,35 +17,33 @@ int main() {
 		printf("4 - Remove Edge\n");
 		printf("5 - Print Graph\n");
 		scanf(" %d", &i);
-		id = 0;
+		value = 0;
 		switch(i) {
-			case 1: printf("\nid: ");
-					scanf(" %d", &id);
-					el.id = id;
-					insertVertex(g, el);
+			case 1: printf("\nvalue: ");
+					scanf(" %d", &value);
+					insertVertex(g, value);
 					break;
 
-			case 2: printf("\nid: ");
-					scanf(" %d", &id);
+			case 2: printf("\nvalue: ");
+					scanf(" %d", &value);
 					printf("\nv1: ");
 					scanf(" %d", &v1);
 					printf("\nv2: ");
 					scanf(" %d", &v2);
-					el.id = id;
-					insertEdge(g, v1, v2, el);
+					insertEdge(g, find(g->vertices, v1), find(g->vertices, v2), value);
 					break;
 
 			case 3: printf("\nid: ");
 					scanf(" %d", &id);
-					el = removeVertex(g, id);
-					if (el.id == 0)
+					value = removeVertex(g, find(g->vertices, id));
+					if (value < 0)
 						printf("Vertex not found\n");
 					break;
 
-			case 4: printf("\nid: ");
+			case 4: printf("\nvid: ");
 					scanf(" %d", &id);
-					el = removeEdge(g, id);
-					if (el.id == 0)
+					value = removeEdge(g, find(g->edges, id));
+					if (value < 0)
 						printf("Edge not found\n");
 					break;
 

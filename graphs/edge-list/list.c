@@ -164,19 +164,3 @@ type_elem removeFromEndOrBegin(list *l, char flag) {
 	l->count--;
 	return aux;
 }
-
-void printList(list *l, node *start, char orderby) {
-	if (l->count == 0) return;
-	if (orderby == 'a') {
-		printf("%d\n", start->elem.id);
-		if(start->next != NULL) {
-			return printList(l, start->next, orderby);
-		}
-	}
-	if (orderby == 'd') {
-		printf("%d\n", start->elem.id);
-		if(start->prev != NULL) {
-			return printList(l, start->prev, orderby);
-		}
-	}
-}
