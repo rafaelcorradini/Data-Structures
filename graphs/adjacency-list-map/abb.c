@@ -1,20 +1,39 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include"abb.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "list.h"
+#include "abb.h"
 
-abb *defineABB() {
-	abb *T;
-	T = malloc(sizeof(abb));
+typedef struct {
+    int value;
+    List *adjacency;
+} Vertex;
+
+typedef struct {
+    double value;
+    Node* v1;
+    Node* v2;
+    Node* adj_v1;
+    Node* adj_v2;
+} Edge;
+
+
+Map *defineABB() {
+	Map *T;
+	T = malloc(sizeof(Map));
 	if(T == NULL) {
 		printf("Memória insuficiente");
 		return NULL;
 	} 
 	T->nelem = 0;
+	T->lastId = 0;
 	return T;
 }
 
-boolean isEmpty(abb *T) {
+map_node *root(Map *T) {
+	return T->root;
+}
+
+boolean isEmpty(Map *T) {
 	if (T->nelem > 0) {
 		return FALSE;
 	} else {
@@ -30,19 +49,33 @@ boolean isExternal(map_node *n) {
 	}
 }
 
-map_node *searchElem(abb *T, int id, map_node *n) {
+map_node *searchElem(Map *T, int id, map_node *n) {
 	if (isEmpty(T)) return NULL;
 	if (isExternal(n)) {
 		return n;
 	} else {
-		if (strcmp(k, n->elem.chave) > 0) { 
-			return searchElem(T, k, n->rightChild);
-		} else if (strcmp(k, n->elem.chave) < 0) {
-			return searchElem(T, k, n->leftChild);
+		if (id > n->elem.id) { 
+			return searchElem(T, id, n->rightChild);
+		} else if (id < n->elem.id) {
+			return searchElem(T, id, n->leftChild);
 		} else {
 			return n;
 		}
 	}
+}
+
+void distVectorAux(Map *T, double **D, map_node *n) {
+	if (T->nelem == 0) return;
+	
+	if (!isExternal(n->leftChild))
+		distVectorAux(T, D, n->leftChild);
+	if (!isExternal(n->rightChild))
+		distVectorAux(T, D, n->rightChild);
+
+	if (!isExternal(n)) {
+		D[n->elem.v1][n->elem.v2] = ((Edge*)(n->elem.node->el))->value;
+		D[n->elem.v2][n->elem.v1] = ((Edge*)(n->elem.node->el))->value;
+	}	
 }
 
 map_node *sibling(map_node *n) {
@@ -53,7 +86,7 @@ map_node *sibling(map_node *n) {
 	}
 }
 
-boolean expandExternal(abb *T, map_node *n) {
+boolean expandExternal(Map *T, map_node *n) {
 	n->leftChild = NULL;
 	n->rightChild = NULL;
 	if (isExternal(n)) {
@@ -72,9 +105,9 @@ boolean expandExternal(abb *T, map_node *n) {
 	}	
 }
 
-tipo_elem removeAboveExternal(abb *T, map_node *n) {
+Map_elem removeAboveExternal(Map *T, map_node *n) {
 	map_node *v;
-	tipo_elem el = n->elem;
+	Map_elem el = n->elem;
 	if (n == T->root) {
 		if (isExternal(n->leftChild) && isExternal(n->rightChild)) {
 			free(n->rightChild);
@@ -94,7 +127,7 @@ tipo_elem removeAboveExternal(abb *T, map_node *n) {
 		} else {
 			v = n->leftChild;
 		}
-		if (strcmp(n->elem.chave, n->parent->elem.chave) < 0) {
+		if (n->elem.id > n->parent->elem.id) {
 			n->parent->leftChild = sibling(v);
 		} else {
 			n->parent->rightChild = sibling(v);
@@ -102,21 +135,22 @@ tipo_elem removeAboveExternal(abb *T, map_node *n) {
 		sibling(v)->parent = n->parent;
 		free(v);
 	}
+
 	free(n);
 	T->nelem--;
 	return el;
 }
 
-map_node *replaceElem(tipo_elem el, map_node *n) {
+map_node *replaceElem(Map_elem el, map_node *n) {
 	if (isExternal(n) || n == NULL) return NULL;
 	n->elem = el;
 	return n;
 }
 
-tipo_elem removeElem(abb *T, int id) {
+Map_elem removeElem(Map *T, int id) {
 	map_node *s, *n;
-	tipo_elem el = {"",""}, els;
-	n = searchElem(T, k, T->root);
+	Map_elem el = {-1, NULL}, els;
+	n = searchElem(T, id, T->root);
 	if (isExternal(n) || n == NULL) return el;
 	el = n->elem;
 
@@ -131,7 +165,7 @@ tipo_elem removeElem(abb *T, int id) {
 	return el;
 }
 
-map_node *substitute(abb *T, map_node *n) {
+map_node *substitute(Map *T, map_node *n) {
 	if(n->rightChild != NULL) {
 		return substitute(T, n->rightChild);
 	} else {
@@ -139,8 +173,12 @@ map_node *substitute(abb *T, map_node *n) {
 	}
 }
 
-map_node *insertElem(abb *T, tipo_elem el) {
+map_node *insertElem(Map *T, Map_elem el) {
 	map_node *n;
+
+	if(T->lastId < el.id)
+		T->lastId = el.id;
+
 	if (isEmpty(T)) {
 		n = malloc(sizeof(map_node));
 		if(n == NULL) {
@@ -154,7 +192,7 @@ map_node *insertElem(abb *T, tipo_elem el) {
 		expandExternal(T,n);
 		return n;
 	} else {
-		n = searchElem(T, el.chave, T->root);
+		n = searchElem(T, el.id, T->root);
 		n->elem = el;
 		T->nelem++;
 		expandExternal(T,n);
@@ -162,8 +200,8 @@ map_node *insertElem(abb *T, tipo_elem el) {
 	}
 }
 
-void freeNodes(abb *T, map_node *n) {
-	if (T->nelem == 0) exit(1);
+void freeNodes(Map *T, map_node *n) {
+	if (T->nelem == 0) return;
 
 	if (n->leftChild != NULL)
 		freeNodes(T, n->leftChild);
@@ -176,15 +214,22 @@ void freeNodes(abb *T, map_node *n) {
 	
 }
 
-void printABB(abb *T, map_node *n) {
+void printABB(Map *T, map_node *n, char op) {
 	if (isEmpty(T)) {
 		printf("Arvore vazia");
 	} else {
 		if (!isExternal(n)) {
-			printABB(T, n->leftChild);
-			printf("%s\n", n->elem.chave);
-			printABB(T, n->rightChild);
+			printABB(T, n->leftChild, op);
+			if(op == 'v')
+				printf("%d %d\n", n->elem.id, ((Vertex*) n->elem.node->el)->value);
+			else 
+				printf("%d %d %d %.3lf\n", n->elem.id, n->elem.v1, n->elem.v2, ((Edge*) n->elem.node->el)->value);
+			printABB(T, n->rightChild, op);
 		}
 	}
 	
+}
+
+int getLastAbb(Map *T) {
+	return T->lastId;
 }

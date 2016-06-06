@@ -2,90 +2,71 @@
 #include <stdlib.h>
 #include "list.h"
 
-typedef struct {
-	int count;
-	Node *head, *tail;
-} list;
-
-list *initList() {
-	list *l;
-	l = (list*) malloc(sizeof(list));
-	l->head = NULL;
-	l->tail = NULL;
-	l->count = 0;
-	return l;
+List *initList() {
+	List *L;
+	L = (List*) malloc(sizeof(List));
+	L->head = NULL;
+	L->tail = NULL;
+	L->count = 0;
+	return L;
 }
 
-void eraseList(list *l, Node *n) {
-	if(l->head == NULL) {
-		free(l);
+void freeList(List *L, Node *n) {
+	if(L->head == NULL) {
+		free(L);
 		return;
 	}
 	if(n->next != NULL)
-		eraseList(l, n->next);
+		freeList(L, n->next);
 
-	free(n->next);
 	free(n->next->el);
+	free(n->next);
 
-	if(n == l->head) {
+	if(n == L->head) {
 		free(n->el);
 		free(n);
-		free(l);
+		free(L);
 	}	
 }
 
-Node *insert(list *l) {
+Node *insertList(List *L) {
 	Node *p;
 	p = (Node*) malloc(sizeof(Node));
-	if(l->head == NULL) {
-		p->next = NULL;
+	if(L->head == NULL) {
 		p->prev = NULL;
-		l->head = p;
-		l->tail = p;
+		L->head = p;
+		L->tail = p;
 	} else {
-		l->tail->next = p;
-		p->prev = l->tail;
-		p->next = NULL;
-		l->tail = p;
+		L->tail->next = p;
+		p->prev = L->tail;
+		L->tail = p;
 	}
-	l->count++;
+	p->next = NULL;
+	p->el = NULL;
+	L->count++;
 	return p;
 }
 
-double remove(list *l, Node *n) {
-	double aux = -1;
+void *removeList(List *L, Node *n) {
+	void *aux = NULL;
 
 	if(n == NULL)
 		return aux;
-	aux = n->value;	
-	if (l->tail == n && l->head == n) {
-		l->head = NULL;
-		l->tail = NULL;
-	} else if (l->head == n) {
-		l->head = n->next;
-		l->head->prev = NULL;
-	} else if (l->tail == n) {
-		l->tail = n->prev;
-		l->tail->next = NULL;
+	aux = n->el;	
+	if (L->tail == n && L->head == n) {
+		L->head = NULL;
+		L->tail = NULL;
+	} else if (L->head == n) {
+		L->head = n->next;
+		L->head->prev = NULL;
+	} else if (L->tail == n) {
+		L->tail = n->prev;
+		L->tail->next = NULL;
 	} else {
 		n->prev->next = n->next;
 		n->next->prev = n->prev;
 	}
-	free(n->el);
 	free(n);
-	l->count--;
+	L->count--;
 	return aux;
-}
-
-Node* find(list *l, int x) {
-	Node *n;
-	int i = 0;
-
-	for (n = l->head; n != NULL; n != NULL? n = n->next) {
-		i++;
-		if (i == x)
-			break;
-	}
-
-	return n;
 }

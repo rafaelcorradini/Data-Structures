@@ -1,18 +1,21 @@
 struct list_node {
-	void* el; // element(vertex or edge)
-	struct list_node next;
-	struct list_node prev;
+	void *el; // element(vertex or edge)
+	struct list_node *next;
+	struct list_node *prev;
 };
 typedef struct list_node Node;
 
-typedef struct list List;
+typedef struct {
+	int count;
+	Node *head, *tail;
+} List;
 
 List *initList();
 
-void eraseList(List *l, Node *n);
+void freeList(List *L, Node *n);
 
-Node *insert(List *l, double value);
+Node *insertList(List *L);
 
-double remove(List *l, Node *n);
+void *removeList(List *L, Node *n);
 
-void printList(List *l, Node *start, char orderby);
+// void printList(List *l, Node *start, char orderby);

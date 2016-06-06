@@ -9,112 +9,122 @@ typedef struct {
 } Vertex;
 
 typedef struct {
-    Node* vertex;
-    Node* edge;
+    Node *vertex;
+    Node *edge;
 } AdjVertex;
 
 typedef struct {
     double value;
-    Node* v1;
-    Node* v2;
-    Node* adj_v1;
-    Node* adj_v2;
+    Node *v1;
+    Node *v2;
+    Node *adj_v1;
+    Node *adj_v2;
 } Edge;
 
-typedef struct {
+struct graph {
     List *vertices;
     List *edges;
-} graph;
+};
 
-graph* initGraph(void) {
-    graph* G;
+typedef enum { FALSE, TRUE } boolean;
+
+Graph *initGraph(void) {
+    Graph *G;
     
-    G = (graph*) malloc(sizeof(graph));
+    G = (Graph*) malloc(sizeof(Graph));
     G->vertices = initList();
     G->edges = initList();
     
     return G;
 }
 
-void eraseGraph(graph* G) {
-    eraseList(G->edges, G->edges->head);
-    eraseList(G->vertices, G->vertices->head);
+void freeGraph(Graph *G) {
+    freeList(G->edges, G->edges->head);
+    freeList(G->vertices, G->vertices->head);
     free(G);
 }
 
-Node *opposite(graph* G, Node* v, Node* e) {
+Node *opposite(Graph *G, Node *v, Node *e) {
     if (e == NULL || v == NULL)
         return NULL;
-    if (e->el->v1 == v)
-        return e->el->v2;
+    if (((Edge*) e->el)->v1 == v)
+        return ((Edge*) e->el)->v2;
     else
-        return e->el->v1;
+        return ((Edge*) e->el)->v1;
 }
 
-int areAdjacent(graph* G, Node* v, Node* w) {
-    Node* n;
+int areAdjacent(Graph *G, Node *v, Node *w) {
+    Node *n;
 
-    if (v->adjacency->count < w->adjacency->count) {
-        for(n = v->adjacency->head; n != NULL; n != NULL ? n->next) {
-            if(n->vertex == w)
+    if (((Vertex*) v->el)->adjacency->count < ((Vertex*)w->el)->adjacency->count) {
+        for(n = ((Vertex*) v->el)->adjacency->head; n != NULL;) {
+            if(((AdjVertex*) n->el)->vertex == w)
                 return TRUE;
+            n = n->next;
         }
     } else {
-        for(n = w->adjacency->head; n != NULL; n != NULL ? n->next) {
-            if(n->vertex == v-)
+        for(n = ((Vertex*)v->el)->adjacency->head; n != NULL;) {
+            if(((AdjVertex*) n->el)->vertex == v)
                 return TRUE;
+            n = n->next;
         }
     }
 
     return FALSE;
 }
 
-void replaceVertex(graph* G, Node* v, int o) {
+void replaceVertex(Graph *G, Node *v, int o) {
     if (v != NULL)
-        v->el->value = o;
+        ((Vertex*) v->el)->value = o;
 }
 
-void replaceEdge(graph* G, Node* e, double o) {
+void replaceEdge(Graph *G, Node *e, double o) {
     if (e != NULL)
-        e->el->value = o;
+        ((Edge*) e->el)->value = o;
 }
 
-Node *insertVertex(graph* G, int o) {
-    Node* n;
-    list* l;
+Node *insertVertex(Graph *G, int o) {
+    Node *n;
+    List *l;
+    Vertex *elem;
 
-    l = (list*) malloc(sizeof(list));
-    n = insert(G->vertices);
+    l = initList();
+    n = insertList(G->vertices);
     n->el = (Vertex*) malloc(sizeof(Vertex));
-    n->el->value = o;
-    n->el->adjacency = l;
-    G->vertices->count++;
+    elem = ((Vertex*) n->el);
+    elem->value = o;
+    elem->adjacency = l;
 
     return n;
 }
 
-Node *insertEdge(graph* G, Node* v, Node* w, double o)  {
-    Node *n, aux;
+Node *insertEdge(Graph *G, Node *v, Node *w, double o)  {
+    Node *n, *aux;
+    Edge *elem;
 
     if (v == NULL || w == NULL)
         return NULL;
 
-    n = insert(G->edges);
+    n = insertList(G->edges);
     n->el = (Edge*) malloc(sizeof(Edge));
-    n->el->value = o;
-    n->el->v1 = v;
-    n->el->v2 = w;
-    aux = insert(v->el->adjacency);
+    elem = (Edge*) n->el;
+    elem->value = o;
+    elem->v1 = v;
+    elem->v2 = w;
+
+    aux = insertList(((Vertex*) w->el)->adjacency);
     aux->el = (AdjVertex*) malloc(sizeof(AdjVertex));
-    aux->el->edge = n;
-    aux->el->vertex = w;  
-    n->el->adj_v1 = aux;
-    aux = insert(w->el->adjacency);
+    ((AdjVertex*) aux->el)->edge = n;
+    ((AdjVertex*) aux->el)->vertex = v;  
+
+    elem->adj_v1 = aux;
+
+    aux = insertList(((Vertex*) v->el)->adjacency);
     aux->el = (AdjVertex*) malloc(sizeof(AdjVertex));
-    aux->el->edge = n;
-    aux->el->vertex = v; 
-    n->el->adj_v2 = aux;
-    G->edges->count++;
+    ((AdjVertex*) aux->el)->edge = n;
+    ((AdjVertex*) aux->el)->vertex = w; 
+
+    elem->adj_v2 = aux;
 
     return n;
 }
@@ -122,81 +132,95 @@ Node *insertEdge(graph* G, Node* v, Node* w, double o)  {
 
 
 // private function, used in removeVertex()
-void removeIncidentEdges(graph* G, Node *n, Node *start) {
-
+void removeIncidentEdges(Graph *G, Node *n, Node *start) {
+    Edge *e;
     if (start->next != NULL)
-        removeIncidentEdges(g, n, start->next);
+        removeIncidentEdges(G, n, start->next);
 
-    remove(G->edges, start->el->edge);
+    e = removeList(G->edges, ((AdjVertex*) start->el)->edge);
+    free(e);
 }
 
-int removeVertex(graph* G, Node* v) {
-    Node* n;
+int removeVertex(Graph *G, Node *v) {
+    Node *n;
+    Vertex *aux;
+    Vertex ret;
 
     if (v == NULL) {
         return -1;
     }
 
-    if (v->el->adjacency->head != NULL)
-        removeIncidentEdges(G, v, v->el->adjacency->head);
-    eraseList(v->el->adjacency, v->el->adjacency->head);
-    G->vertices->count--;
+    if (((Vertex*) v->el)->adjacency->head != NULL)
+        removeIncidentEdges(G, v, ((Vertex*) v->el)->adjacency->head);
+    freeList(((Vertex*) v->el)->adjacency, ((Vertex*) v->el)->adjacency->head);
 
-    return (int) remove(G->vertices, v);
+    aux = (Vertex*) removeList(G->vertices, v);
+    ret = *aux;
+    free(aux);
+    return ret.value;
 }
 
-double removeEdge(graph* G, Node* e) {
-    remove(e->el->adj_v1->vertex->el->adjacency, e->el->adj_v1);
-    remove(e->el->adj_v2->vertex->el->adjacency, e->el->adj_v2);
-    G->edges->count--;
+double removeEdge(Graph *G, Node *e) {
+    Edge *aux;
+    Edge ret;
 
-    return remove(G->edges, e);
+    aux = ((Edge*) e->el);
+    removeList(((Vertex*) aux->v1->el)->adjacency, ((Edge*) e->el)->adj_v2);
+
+    aux = ((Edge*) e->el);
+    removeList(((Vertex*) aux->v2->el)->adjacency, ((Edge*) e->el)->adj_v1);
+
+    aux = (Edge*) removeList(G->edges, e);
+    ret = *aux;
+    free(aux);
+
+    return ret.value;
 }
 
-int vertexValue(Graph* G, node* v) {
-    return v->el->value;
+int vertexValue(Graph *G, Node *v) {
+    return ((Vertex*) v->el)->value;
 }
 
-double edgeValue(Graph* G, node* e) {
-    return e->el->value;
+double edgeValue(Graph *G, Node *e) {
+    return ((Edge*) e->el)->value;
 }
 
-int numVertices(graph* G) {
+int numVertices(Graph *G) {
     return G->vertices->count; 
 }
 
-int numEdges(graph* G) {
+int numEdges(Graph *G) {
     return G->edges->count;
 }
 
-int degree(graph *g, Node* v) {
-    return v->adjacency->count;
+int degree(Graph *G, Node *v) {
+    return ((Vertex*) v->el)->adjacency->count;
 }
 
 
 //// acaba aqui
 
-void printVertices(graph* G) {
-    printList(G->vertices, G->vertices->head, 'a');
-}
+// void printVertices(Graph *G) {
+//     printList(G->vertices, G->vertices->head, 'a');
+// }
 
 
 // private function used in printEdges
-// void printEdgesAux(graph *g, Node *start) {
+// void printEdgesAux(Graph *G, Node *start) {
 //     if (G->edges->count == 0) return;
 //     printf("%d ", start->el);
 
 //     if (start->next != NULL) {
-//         printEdgesAux(g, start->next);
+//         printEdgesAux(G, start->next);
 //     }
 // }
 
-// void printEdges(graph* G) {
-//     printEdgesAux(g, G->edges->head);
+// void printEdges(Graph *G) {
+//     printEdgesAux(G, G->edges->head);
 // }
 
 
-// void printGraph(graph* G) {
-//     printVertices(g);
-//     printEdges(g);
+// void printGraph(Graph *G) {
+//     printVertices(G);
+//     printEdges(G);
 // }
