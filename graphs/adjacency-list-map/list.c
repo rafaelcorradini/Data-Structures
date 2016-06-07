@@ -19,14 +19,16 @@ void freeList(List *L, Node *n) {
 	if(n->next != NULL)
 		freeList(L, n->next);
 
-	free(n->next->el);
-	free(n->next);
+	if(n->el != NULL)
+		free(n->el);
 
 	if(n == L->head) {
-		free(n->el);
 		free(n);
 		free(L);
-	}	
+		return;
+	} else {
+		free(n);
+	}
 }
 
 Node *insertList(List *L) {

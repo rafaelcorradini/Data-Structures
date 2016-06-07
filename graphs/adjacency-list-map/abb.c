@@ -64,17 +64,19 @@ map_node *searchElem(Map *T, int id, map_node *n) {
 	}
 }
 
-void distVectorAux(Map *T, double **D, map_node *n) {
+void distVectorAux(Map *T, double **D, int **P, map_node *n) {
 	if (T->nelem == 0) return;
 	
 	if (!isExternal(n->leftChild))
-		distVectorAux(T, D, n->leftChild);
+		distVectorAux(T, D, P, n->leftChild);
 	if (!isExternal(n->rightChild))
-		distVectorAux(T, D, n->rightChild);
+		distVectorAux(T, D, P, n->rightChild);
 
 	if (!isExternal(n)) {
 		D[n->elem.v1][n->elem.v2] = ((Edge*)(n->elem.node->el))->value;
 		D[n->elem.v2][n->elem.v1] = ((Edge*)(n->elem.node->el))->value;
+		P[n->elem.v1][n->elem.v2] = n->elem.v2;
+		P[n->elem.v2][n->elem.v1] = n->elem.v1;
 	}	
 }
 
@@ -127,7 +129,7 @@ Map_elem removeAboveExternal(Map *T, map_node *n) {
 		} else {
 			v = n->leftChild;
 		}
-		if (n->elem.id > n->parent->elem.id) {
+		if (n->elem.id < n->parent->elem.id) {
 			n->parent->leftChild = sibling(v);
 		} else {
 			n->parent->rightChild = sibling(v);
@@ -147,17 +149,29 @@ map_node *replaceElem(Map_elem el, map_node *n) {
 	return n;
 }
 
+void removeEdges(Map *T, int id, map_node *n) {
+	if (n->leftChild != NULL)
+		removeEdges(T, id, n->leftChild);
+	if (n->rightChild != NULL)
+		removeEdges(T, id, n->rightChild);
+	if (n->elem.v1 == id || n->elem.v2 == id)
+		removeElem(T, n->elem.id);
+}
+
 Map_elem removeElem(Map *T, int id) {
 	map_node *s, *n;
-	Map_elem el = {-1, NULL}, els;
+	Map_elem el = {-1, NULL, -1, -1}, els;
 	n = searchElem(T, id, T->root);
 	if (isExternal(n) || n == NULL) return el;
 	el = n->elem;
 
-	if (isExternal(n->leftChild) || isExternal(n->rightChild)) {
+	if ((isExternal(n->leftChild) || isExternal(n->rightChild)) && T->root != n) {
 		removeAboveExternal(T, n);
 	} else {
-		s = substitute(T, n->leftChild);
+		if (isExternal(n->leftChild))
+			s = substituteRight(T, n->rightChild);
+		else
+			s = substituteLeft(T, n->leftChild);
 		els = s->elem;
 		removeAboveExternal(T, s);
 		replaceElem(els, n);
@@ -165,9 +179,17 @@ Map_elem removeElem(Map *T, int id) {
 	return el;
 }
 
-map_node *substitute(Map *T, map_node *n) {
+map_node *substituteLeft(Map *T, map_node *n) {
 	if(n->rightChild != NULL) {
-		return substitute(T, n->rightChild);
+		return substituteLeft(T, n->rightChild);
+	} else {
+		return n->parent;
+	}
+}
+
+map_node *substituteRight(Map *T, map_node *n) {
+	if(n->leftChild != NULL) {
+		return substituteRight(T, n->leftChild);
 	} else {
 		return n->parent;
 	}
@@ -176,8 +198,7 @@ map_node *substitute(Map *T, map_node *n) {
 map_node *insertElem(Map *T, Map_elem el) {
 	map_node *n;
 
-	if(T->lastId < el.id)
-		T->lastId = el.id;
+	T->lastId = el.id;
 
 	if (isEmpty(T)) {
 		n = malloc(sizeof(map_node));
@@ -216,14 +237,17 @@ void freeNodes(Map *T, map_node *n) {
 
 void printABB(Map *T, map_node *n, char op) {
 	if (isEmpty(T)) {
-		printf("Arvore vazia");
+		return;
 	} else {
 		if (!isExternal(n)) {
 			printABB(T, n->leftChild, op);
-			if(op == 'v')
+			if (op == 'v')
 				printf("%d %d\n", n->elem.id, ((Vertex*) n->elem.node->el)->value);
 			else 
-				printf("%d %d %d %.3lf\n", n->elem.id, n->elem.v1, n->elem.v2, ((Edge*) n->elem.node->el)->value);
+				if (n->elem.v2 > n->elem.v1)
+					printf("%d %d %d %.3lf\n", n->elem.id, n->elem.v1, n->elem.v2, ((Edge*) n->elem.node->el)->value);
+				else
+					printf("%d %d %d %.3lf\n", n->elem.id, n->elem.v2, n->elem.v1, ((Edge*) n->elem.node->el)->value);
 			printABB(T, n->rightChild, op);
 		}
 	}

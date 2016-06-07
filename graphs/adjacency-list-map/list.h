@@ -10,12 +10,15 @@ typedef struct {
 	Node *head, *tail;
 } List;
 
+
+// inicializa a lista
 List *initList();
 
+// desaloca os elementos da lista e a lista
 void freeList(List *L, Node *n);
 
+// insere um elemento na lista
 Node *insertList(List *L);
 
+// remove um elemento da lista
 void *removeList(List *L, Node *n);
-
-// void printList(List *l, Node *start, char orderby);

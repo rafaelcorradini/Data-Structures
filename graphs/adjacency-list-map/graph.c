@@ -39,7 +39,13 @@ Graph *initGraph(void) {
 }
 
 void freeGraph(Graph *G) {
+    Node *v;
+    
     freeList(G->edges, G->edges->head);
+    for (v = G->vertices->head; v != NULL;) {
+        freeList(((Vertex*) v->el)->adjacency, ((Vertex*) v->el)->adjacency->head);
+        v = v->next;
+    }
     freeList(G->vertices, G->vertices->head);
     free(G);
 }
@@ -132,13 +138,11 @@ Node *insertEdge(Graph *G, Node *v, Node *w, double o)  {
 
 
 // private function, used in removeVertex()
-void removeIncidentEdges(Graph *G, Node *n, Node *start) {
-    Edge *e;
+void removeIncidentEdges(Graph *G, Node *start) {
     if (start->next != NULL)
-        removeIncidentEdges(G, n, start->next);
+        removeIncidentEdges(G, start->next);
 
-    e = removeList(G->edges, ((AdjVertex*) start->el)->edge);
-    free(e);
+    removeEdge(G, ((AdjVertex*) start->el)->edge);
 }
 
 int removeVertex(Graph *G, Node *v) {
@@ -151,7 +155,7 @@ int removeVertex(Graph *G, Node *v) {
     }
 
     if (((Vertex*) v->el)->adjacency->head != NULL)
-        removeIncidentEdges(G, v, ((Vertex*) v->el)->adjacency->head);
+        removeIncidentEdges(G, ((Vertex*) v->el)->adjacency->head);
     freeList(((Vertex*) v->el)->adjacency, ((Vertex*) v->el)->adjacency->head);
 
     aux = (Vertex*) removeList(G->vertices, v);
@@ -162,13 +166,14 @@ int removeVertex(Graph *G, Node *v) {
 
 double removeEdge(Graph *G, Node *e) {
     Edge *aux;
+    AdjVertex *aux2;
     Edge ret;
 
-    aux = ((Edge*) e->el);
-    removeList(((Vertex*) aux->v1->el)->adjacency, ((Edge*) e->el)->adj_v2);
-
-    aux = ((Edge*) e->el);
-    removeList(((Vertex*) aux->v2->el)->adjacency, ((Edge*) e->el)->adj_v1);
+    aux = (Edge*) e->el;
+    aux2 = (AdjVertex*) removeList(((Vertex*) aux->v1->el)->adjacency, aux->adj_v2);
+    free(aux2);
+    aux2 = (AdjVertex*) removeList(((Vertex*) aux->v2->el)->adjacency, aux->adj_v1);
+    free(aux2);
 
     aux = (Edge*) removeList(G->edges, e);
     ret = *aux;
@@ -196,31 +201,3 @@ int numEdges(Graph *G) {
 int degree(Graph *G, Node *v) {
     return ((Vertex*) v->el)->adjacency->count;
 }
-
-
-//// acaba aqui
-
-// void printVertices(Graph *G) {
-//     printList(G->vertices, G->vertices->head, 'a');
-// }
-
-
-// private function used in printEdges
-// void printEdgesAux(Graph *G, Node *start) {
-//     if (G->edges->count == 0) return;
-//     printf("%d ", start->el);
-
-//     if (start->next != NULL) {
-//         printEdgesAux(G, start->next);
-//     }
-// }
-
-// void printEdges(Graph *G) {
-//     printEdgesAux(G, G->edges->head);
-// }
-
-
-// void printGraph(Graph *G) {
-//     printVertices(G);
-//     printEdges(G);
-// }

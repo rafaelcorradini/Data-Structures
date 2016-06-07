@@ -53,11 +53,17 @@ map_node *replaceElem(Map_elem el, map_node *n);
 // remove o no de chave k se existir
 Map_elem removeElem(Map *T, int id); 
 
-//coloca todas as distancias na matriz D
-void distVectorAux(Map *T, double **D, map_node *n); 
+// remove as arestas incidentes ao vertice do id
+void removeEdges(Map *M, int id, map_node *n); 
 
-// encontra um substituto para um no interno, para que se possa efetuar sua remocao
-map_node *substitute(Map *T, map_node *n); 
+//coloca todas as distancias na matriz D
+void distVectorAux(Map *T, double **D, int **P, map_node *n); 
+
+// encontra um substituto da direita para um no interno, para que se possa efetuar sua remocao
+map_node *substituteRight(Map *T, map_node *n); 
+
+// encontra um substituto  esquerda para um no interno, para que se possa efetuar sua remocao
+map_node *substituteLeft(Map *T, map_node *n); 
 
 // percurso inter-fixado
 void printABB(Map *T, map_node *n, char op); 

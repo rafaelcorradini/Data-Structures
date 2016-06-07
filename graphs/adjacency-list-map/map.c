@@ -41,14 +41,18 @@ int getLastMap(Map *M) {
 	return getLastAbb(M);
 }
 
-void distVector(Map *M, double **D) {
-	distVectorAux(M, D, root(M));
+void removeEdgesMap(Map *T, int id) {
+	removeEdges(T, id, root(T));
+}
+
+void distVector(Map *M, double **D, int **P) {
+	distVectorAux(M, D, P, root(M));
 }
 
 void printMap(Map *M, char op) {
 	printABB(M, root(M), op);
 }
 
-void freeMap(Map *M, map_node *n) {
+void freeNodesMap(Map *M) {
 	freeNodes(M, root(M));
 }
