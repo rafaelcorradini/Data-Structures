@@ -197,7 +197,3 @@ int numVertices(Graph *G) {
 int numEdges(Graph *G) {
     return G->edges->count;
 }
-
-int degree(Graph *G, Node *v) {
-    return ((Vertex*) v->el)->adjacency->count;
-}

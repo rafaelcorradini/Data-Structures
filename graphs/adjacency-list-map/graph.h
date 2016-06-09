@@ -42,6 +42,3 @@ int numVertices(Graph *G);
 
 // Função para acessar o número de arestas de um grafo
 int numEdges(Graph *G);
-
-// Função para acessar o grau de um vértice de um grafo
-int degree(Graph *G, Node* v);

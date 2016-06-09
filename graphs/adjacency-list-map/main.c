@@ -50,7 +50,7 @@ void FloydWarshall(Graph *G, Map *map_vertices, Map *map_edges, double **D, int 
 
 	}
 
-	distVector(map_edges, D, P);
+	distVector(map_edges, D, P); // inicializa os dois vetores, colocando os valores das arestas em D, e os caminhos dos vértices adjacentes em P
 
     for (k = 0; k <= getLastMap(map_vertices); k++) {
         for (i = 0; i <= getLastMap(map_vertices); i++) {
